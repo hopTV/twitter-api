@@ -1,22 +1,19 @@
-import express, { NextFunction, Request, Response } from 'express'
+import express from 'express'
 import usersRouter from './routes/users.routes'
-import { loginValidator } from './middlewares/users.middlewares'
 import databaseServices from './services/database.services'
+import {defaultErrorHandler} from './middlewares/errorr.middlewares'
 
 const app = express()
 const port = 3000
+databaseServices.connect()
 
 app.get('/', (req, res) => {
-  res.send('hello anh hợp')
+  res.send('hello hoptv')
 })
-
-databaseServices.connect()
 
 app.use(express.json())
 app.use('/users', usersRouter)
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  res.status(400).json({ error: err.message })
-})
+app.use(defaultErrorHandler)
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
