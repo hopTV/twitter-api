@@ -1,6 +1,4 @@
 import { NextFunction, Request, Response } from 'express'
-import User from '~/models/schemas/User.schema'
-import databaseServices from '~/services/database.services'
 import userServices from '~/services/users.services'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { registerReqBody } from '~/models/requests/user.requerst'
