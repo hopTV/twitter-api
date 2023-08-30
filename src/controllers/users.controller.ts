@@ -57,5 +57,5 @@ export const verifyEmailController = async (req: Request<ParamsDictionary, any, 
     })
   }
 
-  // const result = await userServices.
+  const result = await userServices.verifyEmail(user_id)
 }
