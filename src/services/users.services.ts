@@ -3,7 +3,7 @@ import databaseServices from './database.services'
 import { registerReqBody } from '~/models/requests/user.requerst'
 import { hashPassword } from '~/utils/crypto'
 import { signToken } from '~/utils/jwt'
-import { TokenType } from '~/constants/enums'
+import { TokenType, UserVerifyStatus } from '~/constants/enums'
 import { config } from 'dotenv'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import { ObjectId } from 'mongodb'
@@ -49,7 +49,7 @@ class UsersServices {
       this.signRefreshToken(user_id)
     ])
     await databaseServices.refreshTokens.insertOne(
-      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token})
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
     )
     return {
       access_token,
@@ -68,15 +68,19 @@ class UsersServices {
       this.signRefreshToken(user_id)
     ])
     await databaseServices.refreshTokens.insertOne(
-      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token})
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
     )
 
     return { access_token, refresh_token }
   }
 
   async logout(refresh_token: string) {
-    const result = await databaseServices.refreshTokens.deleteOne({token: refresh_token})
+    const result = await databaseServices.refreshTokens.deleteOne({ token: refresh_token })
   }
+
+  // async verifyEmail(user_id: string) {
+  //   const [token] = await Promise.all([this.signAccessToken({ user_id, verify: UserVerifyStatus.Verified })])
+  // }
 }
 
 const userServices = new UsersServices()
