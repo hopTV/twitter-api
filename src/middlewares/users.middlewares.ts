@@ -227,34 +227,68 @@ export const refreshTokenValidator = validate(
     ['body']
   )
 )
-
 export const emailVerifyTokenValidator = validate(
-  checkSchema({
-    email_verify_token: {
-      trim: true,
-      custom: {
-        options: async (value: string, { req }) => {
-          if (!value) {
-            throw new ErrorWithStatus({
-              message: userMessages.EMAIL_VERIFY_TOKEN_IS_REQUIRED,
-              status: httpStatus.UNAUTHORIZED
-            })
-          }
-          try {
-            const decoded_email_verify_token = await verifyToken({
-              token: value,
-              secretOrPublicKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
-            })
+  checkSchema(
+    {
+      email_verify_token: {
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: userMessages.EMAIL_VERIFY_TOKEN_IS_REQUIRED,
+                status: httpStatus.UNAUTHORIZED
+              })
+            }
+            try {
+              const decoded_email_verify_token = await verifyToken({
+                token: value,
+                secretOrPublicKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
+              })
 
-            ;(req as Request).decoded_email_verify_token = decoded_email_verify_token
-          } catch (err) {
-            throw new ErrorWithStatus({
-              message: capitalize((err as JsonWebTokenError).message),
-              status: httpStatus.UNAUTHORIZED
-            })
+              ;(req as Request).decoded_email_verify_token = decoded_email_verify_token
+            } catch (error) {
+              throw new ErrorWithStatus({
+                message: capitalize((error as JsonWebTokenError).message),
+                status: httpStatus.UNAUTHORIZED
+              })
+            }
+
+            return true
           }
         }
       }
-    }
-  }, ['body'])
+    },
+    ['body']
+  )
 )
+
+export const forgotPasswordValidate = validate(checkSchema({
+  email: {
+    isEmail: {
+      errorMessage: userMessages.EMAIL_IS_INVALID
+    },
+    trim: true,
+    custom: {
+      options: async (value, { req }) => {
+        const user = await databaseServices.users.findOne({
+          email: value,
+        })
+        if (user === null) {
+          throw new Error(userMessages.USER_NOT_FOUND)
+        }
+        req.user = user
+        return true
+      }
+    }
+  },
+}))
+
+// export const verifyForgotToken = validate(checkSchema({
+//   forgot_password_token: {
+//     trim: true,
+//     custom: {
+//       options: async(value: string, {req})
+//     }
+//   }
+// }, ['body']))
