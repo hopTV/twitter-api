@@ -5,12 +5,17 @@ import httpStatus from '~/constants/httpStatus'
 import { userMessages } from '~/constants/message'
 import { ErrorWithStatus } from '~/models/Errors'
 import { verifyToken } from './jwt'
+import { config } from 'dotenv'
+
+config()
 
 export const verifyAccessToken = async (access_token: string, req?: Request) => {
   if (!access_token) {
-    throw new ErrorWithStatus({ message: userMessages.ACCESS_TOKEN_IS_REQUIRED, status: httpStatus.UNAUTHORIZED })
+    throw new ErrorWithStatus({
+      message: userMessages.ACCESS_TOKEN_IS_REQUIRED,
+      status: httpStatus.UNAUTHORIZED
+    })
   }
-
   try {
     const decoded_authorization = await verifyToken({
       token: access_token,
@@ -21,9 +26,9 @@ export const verifyAccessToken = async (access_token: string, req?: Request) => 
       return true
     }
     return decoded_authorization
-  } catch (err) {
+  } catch (error) {
     throw new ErrorWithStatus({
-      message: capitalize((err as JsonWebTokenError).message),
+      message: capitalize((error as JsonWebTokenError).message),
       status: httpStatus.UNAUTHORIZED
     })
   }
