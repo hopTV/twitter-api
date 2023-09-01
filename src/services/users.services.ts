@@ -11,11 +11,12 @@ import { userMessages } from '~/constants/message'
 
 config()
 class UsersServices {
-  private signAccessToken(user_id: string) {
+  private signAccessToken({user_id, verify}: {user_id: string, verify: UserVerifyStatus}) {
     return signToken({
       payload: {
         user_id,
-        token_type: TokenType.AccessToken
+        token_type: TokenType.AccessToken,
+        verify
       },
       privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string,
       options: {
@@ -24,11 +25,12 @@ class UsersServices {
     })
   }
 
-  private signRefreshToken(user_id: string) {
+  private signRefreshToken({user_id, verify}: {user_id: string, verify: UserVerifyStatus}) {
     return signToken({
       payload: {
         user_id,
-        token_type: TokenType.RefreshToken
+        token_type: TokenType.RefreshToken,
+        verify
       },
       privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
       options: {
@@ -37,7 +39,7 @@ class UsersServices {
     })
   }
 
-  private signAccessAndRefreshToken(user_id: string) {
+  private signAccessAndRefreshToken({user_id, verify}: {user_id: string, verify: UserVerifyStatus}) {
     return Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)])
   }
 
@@ -164,10 +166,8 @@ class UsersServices {
   }
 
   async forgotPassword(user_id: string) {
-    console.log(user_id);
-    
     const forgot_password_token = await this.signForgotPasswordToken(user_id)
-    
+
     await databaseServices.users.updateOne({ _id: new ObjectId(user_id) }, [
       {
         $set: {
@@ -180,6 +180,36 @@ class UsersServices {
     return {
       message: userMessages.CHECK_EMAIL_TO_RESET_PASSWORD
     }
+  }
+
+  async resetPassword(user_id: string, password: string) {
+    databaseServices.users.updateOne(
+      { _id: new ObjectId(user_id) },
+      {
+        $set: {
+          forgot_password_token: '',
+          password: hashPassword(password)
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      }
+    )
+    return {
+      message: userMessages.RESET_PASSWORD_SUCCESS
+    }
+  }
+
+  async getMe(user_id: string) {
+    const user =  databaseServices.users.findOne({_id: new ObjectId(user_id)}, {
+      projection: {
+        password: 0,
+        email_verify_token: 0,
+        forget_password_token: 0
+      }
+    })
+
+    return user
   }
 }
 

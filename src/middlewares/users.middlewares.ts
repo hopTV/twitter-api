@@ -1,5 +1,5 @@
 import { Request } from 'express'
-import { checkSchema } from 'express-validator'
+import { ParamSchema, checkSchema } from 'express-validator'
 import { ErrorWithStatus } from '~/models/Errors'
 import userServices from '~/services/users.services'
 import { validate } from '~/utils/validation'
@@ -12,6 +12,112 @@ import { JsonWebTokenError } from 'jsonwebtoken'
 import { capitalize } from 'lodash'
 import { verifyToken } from '~/utils/jwt'
 import { error } from 'console'
+import { ObjectId } from 'mongodb'
+
+const passwordSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: userMessages.PASSWORD_IS_REQUIRED
+  },
+  isString: { errorMessage: userMessages.PASSWORD_MUST_BE_A_STRING },
+  isLength: {
+    options: {
+      min: 6,
+      max: 50
+    },
+    errorMessage: userMessages.PASSWORD_LENGTH_MUST_BE_FROM_6_TO_50
+  },
+  isStrongPassword: {
+    options: {
+      minLength: 6,
+      minLowercase: 1,
+      minNumbers: 1,
+      minUppercase: 1,
+      minSymbols: 1
+    },
+    errorMessage: userMessages.PASSWORD_MUST_BE_STRONG
+  }
+}
+
+const confirmPasswordSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: userMessages.CONFIRM_PASSWORD_IS_REQUIRED
+  },
+  isString: {
+    errorMessage: userMessages.PASSWORD_MUST_BE_A_STRING
+  },
+  isLength: {
+    options: {
+      min: 6,
+      max: 100
+    },
+    errorMessage: userMessages.CONFIRM_PASSWORD_LENGTH_MUST_BE_FROM_6_TO_50
+  },
+  isStrongPassword: {
+    options: {
+      minLength: 6,
+      minLowercase: 1,
+      minNumbers: 1,
+      minSymbols: 1,
+      minUppercase: 1
+    },
+    errorMessage: userMessages.CONFIRM_PASSWORD_MUST_BE_STRONG
+  },
+  custom: {
+    options: (value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error(userMessages.CONFIRM_PASSWORD_MUST_BE_THE_SAME_AS_PASSWORD)
+      }
+      return true
+    }
+  }
+}
+
+const forgotPasswordTokenSchema: ParamSchema = {
+  trim: true,
+  custom: {
+    options: async (value: string, { req }) => {
+      if (!value) {
+        throw new ErrorWithStatus({
+          message: userMessages.FORGOT_PASSWORD_TOKEN_IS_REQUIRED,
+          status: httpStatus.UNAUTHORIZED
+        })
+      }
+      try {
+        const decoded_forgot_password_token = await verifyToken({
+          token: value,
+          secretOrPublicKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
+        })
+
+        const { user_id } = decoded_forgot_password_token
+        const user = await databaseServices.users.findOne({ _id: new ObjectId(user_id) })
+
+        if (user === null) {
+          throw new ErrorWithStatus({
+            message: userMessages.USER_NOT_FOUND,
+            status: httpStatus.UNAUTHORIZED
+          })
+        }
+
+        if (user.forgot_password_token !== value) {
+          throw new ErrorWithStatus({
+            message: userMessages.INVALID_FORGOT_PASSWORD_TOKEN,
+            status: httpStatus.UNAUTHORIZED
+          })
+        }
+
+        (req as Request).decoded_forgot_password_token = decoded_forgot_password_token
+
+      } catch (error) {
+        if (error instanceof JsonWebTokenError) {
+          throw new ErrorWithStatus({
+            message: capitalize(error.message),
+            status: httpStatus.UNAUTHORIZED
+          })
+        }
+      }
+    }
+  }
+}
 
 export const loginValidator = validate(
   checkSchema(
@@ -35,29 +141,7 @@ export const loginValidator = validate(
           }
         }
       },
-      password: {
-        notEmpty: {
-          errorMessage: userMessages.PASSWORD_IS_REQUIRED
-        },
-        isString: { errorMessage: userMessages.PASSWORD_MUST_BE_A_STRING },
-        isLength: {
-          options: {
-            min: 6,
-            max: 50
-          },
-          errorMessage: userMessages.PASSWORD_LENGTH_MUST_BE_FROM_6_TO_50
-        },
-        isStrongPassword: {
-          options: {
-            minLength: 6,
-            minLowercase: 1,
-            minNumbers: 1,
-            minUppercase: 1,
-            minSymbols: 1
-          },
-          errorMessage: userMessages.PASSWORD_MUST_BE_STRONG
-        }
-      }
+      password: passwordSchema
     },
     ['body']
   )
@@ -99,64 +183,8 @@ export const registerValidator = validate(
         }
       }
     },
-    password: {
-      notEmpty: {
-        errorMessage: userMessages.PASSWORD_IS_REQUIRED
-      },
-      isString: {
-        errorMessage: userMessages.PASSWORD_MUST_BE_A_STRING
-      },
-      isLength: {
-        options: {
-          min: 6,
-          max: 100
-        },
-        errorMessage: userMessages.PASSWORD_LENGTH_MUST_BE_FROM_6_TO_50
-      },
-      isStrongPassword: {
-        options: {
-          minLength: 6,
-          minLowercase: 1,
-          minNumbers: 1,
-          minSymbols: 1,
-          minUppercase: 1
-        },
-        errorMessage: userMessages.PASSWORD_MUST_BE_STRONG
-      }
-    },
-    confirm_password: {
-      notEmpty: {
-        errorMessage: userMessages.CONFIRM_PASSWORD_IS_REQUIRED
-      },
-      isString: {
-        errorMessage: userMessages.PASSWORD_MUST_BE_A_STRING
-      },
-      isLength: {
-        options: {
-          min: 6,
-          max: 100
-        },
-        errorMessage: userMessages.CONFIRM_PASSWORD_LENGTH_MUST_BE_FROM_6_TO_50
-      },
-      isStrongPassword: {
-        options: {
-          minLength: 6,
-          minLowercase: 1,
-          minNumbers: 1,
-          minSymbols: 1,
-          minUppercase: 1
-        },
-        errorMessage: userMessages.CONFIRM_PASSWORD_MUST_BE_STRONG
-      },
-      custom: {
-        options: (value, { req }) => {
-          if (value !== req.body.password) {
-            throw new Error(userMessages.CONFIRM_PASSWORD_MUST_BE_THE_SAME_AS_PASSWORD)
-          }
-          return true
-        }
-      }
-    },
+    password: passwordSchema,
+    confirm_password: confirmPasswordSchema,
     date_of_birth: {
       isISO8601: {
         options: {
@@ -263,32 +291,42 @@ export const emailVerifyTokenValidator = validate(
   )
 )
 
-export const forgotPasswordValidate = validate(checkSchema({
-  email: {
-    isEmail: {
-      errorMessage: userMessages.EMAIL_IS_INVALID
-    },
-    trim: true,
-    custom: {
-      options: async (value, { req }) => {
-        const user = await databaseServices.users.findOne({
-          email: value,
-        })
-        if (user === null) {
-          throw new Error(userMessages.USER_NOT_FOUND)
+export const forgotPasswordValidate = validate(
+  checkSchema({
+    email: {
+      isEmail: {
+        errorMessage: userMessages.EMAIL_IS_INVALID
+      },
+      trim: true,
+      custom: {
+        options: async (value, { req }) => {
+          const user = await databaseServices.users.findOne({
+            email: value
+          })
+          if (user === null) {
+            throw new Error(userMessages.USER_NOT_FOUND)
+          }
+          req.user = user
+          return true
         }
-        req.user = user
-        return true
       }
     }
-  },
-}))
+  })
+)
 
-// export const verifyForgotToken = validate(checkSchema({
-//   forgot_password_token: {
-//     trim: true,
-//     custom: {
-//       options: async(value: string, {req})
-//     }
-//   }
-// }, ['body']))
+export const verifyForgotTokenValidator = validate(
+  checkSchema(
+    {
+      forgot_password_token: forgotPasswordTokenSchema
+    },
+    ['body']
+  )
+)
+
+export const resetPasswordValidator = validate(
+  checkSchema({
+    password: passwordSchema,
+    confirm_password: confirmPasswordSchema,
+    forgot_password_token: forgotPasswordTokenSchema
+  }, ['body'])
+)

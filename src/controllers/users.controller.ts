@@ -7,7 +7,9 @@ import {
   LogoutReqBody,
   TokenPayload,
   VerifyEmailReqBody,
-  ForgotPasswordReqBody
+  ForgotPasswordReqBody,
+  verifyForgotPasswordReqBody,
+  ResetPasswordReqBody
 } from '~/models/requests/user.requerst'
 import User from '~/models/schemas/User.schema'
 import { ObjectId } from 'mongodb'
@@ -93,8 +95,41 @@ export const forgotPasswordController = async (
   res: Response,
   next: NextFunction
 ) => {
-  
-  const {_id} = req.user as User
+  const { _id } = req.user as User
   const result = await userServices.forgotPassword((_id as ObjectId).toString())
   return res.json(result)
 }
+
+export const verifyForgotPasswordController = async (
+  req: Request<ParamsDictionary, any, verifyForgotPasswordReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  return res.json({
+    message: userMessages.VERIFY_FORGOT_PASSWORD_SUCCESS
+  })
+}
+
+export const resetPasswordController = async (
+  req: Request<ParamsDictionary, any, ResetPasswordReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { user_id } = req.decoded_forgot_password_token
+  const { password } = req.body
+
+  const result = await userServices.resetPassword(user_id, password)
+  return res.json(result)
+}
+
+export const getMeController = async (req: Request,
+  res: Response,
+  next: NextFunction) => {
+    const {user_id} = req.decoded_authorization
+
+    const result = await userServices.getMe(user_id)
+    return res.json({
+      message: userMessages.GET_ME_SUCCESS,
+      result
+    })
+  }
