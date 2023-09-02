@@ -10,7 +10,11 @@ import {
   ForgotPasswordReqBody,
   verifyForgotPasswordReqBody,
   ResetPasswordReqBody,
-  UpdateMeReqBody
+  UpdateMeReqBody,
+  getProfileReqPamrams,
+  FollowReqBody,
+  UnFollowReqParams,
+  ChangePasswordReqBody
 } from '~/models/requests/user.requerst'
 import User from '~/models/schemas/User.schema'
 import { ObjectId } from 'mongodb'
@@ -146,4 +150,49 @@ export const updateMeController = async (
     message: userMessages.UPDATE_ME_SUCCESS,
     result: user
   })
+}
+
+export const getProfileController = async (req: Request<getProfileReqPamrams>, res: Response, next: NextFunction) => {
+  const { username } = req.params
+  const user = await userServices.getProfile(username)
+  return res.json({
+    message: userMessages.GET_PROFILE_SUCCESS,
+    result: user
+  })
+}
+
+export const followController = async (
+  req: Request<ParamsDictionary, any, FollowReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { user_id } = req.decoded_authorization
+  const { followed_user_id } = req.body
+  const result = await userServices.follow(user_id, followed_user_id)
+  return res.json(result)
+}
+
+export const unfollowController = async (
+  req: Request<ParamsDictionary, any, UnFollowReqParams>,
+  res: Response,
+  next: NextFunction
+) => {
+  const {user_id} = req.decoded_authorization
+  const {user_id: follow_id} = req.params
+  console.log(req.params);
+  
+
+  const result = await userServices.unFollow(user_id, follow_id)
+  return res.json(result)
+}
+
+export const changePasswordController = async (
+  req: Request<ParamsDictionary, any, ChangePasswordReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  const {user_id} =  req.decoded_authorization
+  const {password} = req.body 
+  const result = await userServices.changePassword(user_id, password)
+  return res.json(result)
 }

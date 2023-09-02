@@ -9,7 +9,7 @@ import { hashPassword } from '~/utils/crypto'
 import { verifyAccessToken } from '~/utils/common'
 import httpStatus from '~/constants/httpStatus'
 import { JsonWebTokenError } from 'jsonwebtoken'
-import { capitalize } from 'lodash'
+import { capitalize, values } from 'lodash'
 import { verifyToken } from '~/utils/jwt'
 import { error } from 'console'
 import { ObjectId } from 'mongodb'
@@ -160,6 +160,32 @@ const imageSchema: ParamSchema = {
       max: 400
     },
     errorMessage: userMessages.IMAGE_URL_LENGTH
+  }
+}
+
+const userIdSchema: ParamSchema = {
+  custom: {
+    options: async (value: string, { req }) => {
+      console.log(value)
+
+      if (!ObjectId.isValid(value)) {
+        throw new ErrorWithStatus({
+          message: userMessages.INVALID_USER_ID,
+          status: httpStatus.NOT_FOUND
+        })
+      }
+
+      const followed_user = await databaseServices.users.findOne({
+        _id: new ObjectId(value)
+      })
+
+      if (followed_user === null) {
+        throw new ErrorWithStatus({
+          message: userMessages.USER_NOT_FOUND,
+          status: httpStatus.NOT_FOUND
+        })
+      }
+    }
   }
 }
 
@@ -444,4 +470,52 @@ export const updateMeValidator = validate(
     avatar: imageSchema,
     cover_photo: imageSchema
   })
+)
+
+export const followValidator = validate(
+  checkSchema(
+    {
+      followed_user_id: userIdSchema
+    },
+    ['body']
+  )
+)
+
+export const unfollowValidator = validate(
+  checkSchema(
+    {
+      user_id: userIdSchema
+    },
+    ['params']
+  )
+)
+
+export const changePasswordValidator = validate(
+  checkSchema({
+    old_password: {
+      ...passwordSchema,
+      custom: {
+        options: async (value: string, { req }) => {
+          const { user_id } = (req as Request).decoded_authorization as TokenPayload
+          const user = await databaseServices.users.findOne({ _id: new ObjectId(user_id) })
+          if (!user) {
+            throw new ErrorWithStatus({
+              message: userMessages.USER_NOT_FOUND,
+              status: httpStatus.NOT_FOUND
+            })
+          }
+          const { password } = user
+          const isMatch = hashPassword(value) === password
+          if (!isMatch) {
+            throw new ErrorWithStatus({
+              message: userMessages.OLD_PASSWORD_NOT_MATCH,
+              status: httpStatus.UNAUTHORIZED
+            })
+          }
+        }
+      }
+    },
+    password: passwordSchema,
+    confirm_password: confirmPasswordSchema
+  }, ['body'])
 )
