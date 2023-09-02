@@ -7,6 +7,7 @@ import {
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
+  updateMeController,
   verifyEmailController,
   verifyForgotPasswordController
 } from '~/controllers/users.controller'
@@ -18,6 +19,8 @@ import {
   refreshTokenValidator,
   registerValidator,
   resetPasswordValidator,
+  updateMeValidator,
+  verifiedUserValidator,
   verifyForgotTokenValidator
 } from '~/middlewares/users.middlewares'
 import { wrapRequestHandler } from '~/utils/handlers'
@@ -30,10 +33,21 @@ usersRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrapReq
 usersRouter.post('/verify-email', emailVerifyTokenValidator, wrapRequestHandler(verifyEmailController))
 usersRouter.post('/resend-verify-email', accessTokenValidator, wrapRequestHandler(resendVerifyEmailController))
 usersRouter.post('/forgot-password', forgotPasswordValidate, wrapRequestHandler(forgotPasswordController))
-usersRouter.post('/verify-forgot-password',verifyForgotTokenValidator, wrapRequestHandler(verifyForgotPasswordController))
+usersRouter.post(
+  '/verify-forgot-password',
+  verifyForgotTokenValidator,
+  wrapRequestHandler(verifyForgotPasswordController)
+)
 usersRouter.post('/reset-password', resetPasswordValidator, wrapRequestHandler(resetPasswordController))
 
 usersRouter.get('/me', accessTokenValidator, wrapRequestHandler(getMeController))
-usersRouter.patch('/me', accessTokenValidator, wrapRequestHandler(getMeController))
+
+usersRouter.patch(
+  '/me',
+  accessTokenValidator,
+  verifiedUserValidator,
+  updateMeValidator,
+  wrapRequestHandler(updateMeController)
+)
 
 export default usersRouter
