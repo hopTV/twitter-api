@@ -23,12 +23,18 @@ export const loginController = async (req: Request<ParamsDictionary, any, LoginR
   const user = req.user as User
   const user_id = user._id as ObjectId
   const result = await userServices.login({ user_id: user_id?.toString(), verify: user.verify })
-  console.log(result)
 
   return res.json({
     message: 'login success',
     result
   })
+}
+
+export const oauthController = async (req: Request, res: Response) => {
+  const { code } = req.query
+  const result = await userServices.oauth(code as string)
+  const urlRedirect = `${process.env.CLIENT_REDIRECT}?access_token=${result.access_token}&refresh_token=${result.refresh_token}&new_user=${result.newUser}&verify=${result.verify}`
+  return res.redirect(urlRedirect)
 }
 
 export const registerController = async (req: Request<ParamsDictionary, any, registerReqBody>, res: Response) => {
