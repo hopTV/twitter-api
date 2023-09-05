@@ -18,6 +18,5 @@ export default class RefreshToken {
     this.created_at = created_at || new Date()
     this.token = token
     this.user_id = user_id
-    
   }
 }

@@ -33,7 +33,7 @@ class DatabaseService {
   }
 
   get refreshTokens(): Collection<RefreshToken> {
-    return this.db.collection("refresh_token")
+    return this.db.collection('refresh_token')
   }
 }
 
