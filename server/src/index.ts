@@ -2,9 +2,13 @@ import express from 'express'
 import usersRouter from './routes/users.routes'
 import databaseServices from './services/database.services'
 import { defaultErrorHandler } from './middlewares/errorr.middlewares'
+import mediasRouter from './routes/medias.routes'
+import { config } from 'dotenv'
+
+config()
 
 const app = express()
-const port = 4000
+const port = process.env.PORT
 databaseServices.connect()
 
 app.get('/', (req, res) => {
@@ -13,6 +17,7 @@ app.get('/', (req, res) => {
 
 app.use(express.json())
 app.use('/users', usersRouter)
+app.use('/medias', mediasRouter)
 app.use(defaultErrorHandler)
 
 app.listen(port, () => {
