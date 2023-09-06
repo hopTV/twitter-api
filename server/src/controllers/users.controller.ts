@@ -10,7 +10,8 @@ import {
   ForgotPasswordReqBody,
   verifyForgotPasswordReqBody,
   ResetPasswordReqBody,
-  UpdateMeReqBody
+  UpdateMeReqBody,
+  RefreshTokenReqBody
 } from '~/models/requests/user.requerst'
 import User from '~/models/schemas/User.schema'
 import { ObjectId } from 'mongodb'
@@ -26,6 +27,19 @@ export const loginController = async (req: Request<ParamsDictionary, any, LoginR
 
   return res.json({
     message: 'login success',
+    result
+  })
+}
+
+export const refreshTokenController = async (
+  req: Request<ParamsDictionary, any, RefreshTokenReqBody>,
+  res: Response
+) => {
+  const { refresh_token } = req.body
+  const { user_id, verify, exp } = req.decoded_refresh_token
+  const result = await userServices.refreshToken({ user_id, refresh_token, verify, exp })
+  return res.json({
+    message: userMessages.REFRESH_TOKEN_SUCCESS,
     result
   })
 }

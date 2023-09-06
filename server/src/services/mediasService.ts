@@ -3,7 +3,7 @@ import { Request } from 'express'
 import path from 'path'
 import { UPLOAD_IMAGE_DIR } from '~/constants/dir'
 import { Media } from '~/models/Other'
-import { getNameFromFullname, handleUploadImage } from '~/utils/files'
+import { getNameFromFullname, handleUploadImage, handleUploadVideo } from '~/utils/files'
 import fs from 'fs'
 
 config()
@@ -31,6 +31,21 @@ class MediasService {
         }
       })
     )
+    return result
+  }
+
+  async uploadVideo(req: Request) {
+    const files = await handleUploadVideo(req)
+    
+    const result: Media[] = await Promise.all(files.map((file) => {
+        return {
+            url: isProduction
+            ? `${process.env.HOST}/static/video/${file.newFilename}`
+            : `http://localhost:${process.env.PORT}/static/video/${file.newFilename}`,
+          type: MediaType.Video
+        }
+    }))
+
     return result
   }
 }
