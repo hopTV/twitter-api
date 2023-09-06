@@ -5,6 +5,7 @@ import {
   loginController,
   logoutController,
   oauthController,
+  refreshTokenController,
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
@@ -31,6 +32,8 @@ const usersRouter = Router()
 usersRouter.post('/login', loginValidator, wrapRequestHandler(loginController))
 //login vs google
 usersRouter.get('/oauth/google', wrapRequestHandler(oauthController))
+
+usersRouter.post('/refresh-token',  refreshTokenValidator, wrapRequestHandler(refreshTokenController))
 
 usersRouter.post('/register', registerValidator, wrapRequestHandler(registerController))
 usersRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrapRequestHandler(logoutController))
