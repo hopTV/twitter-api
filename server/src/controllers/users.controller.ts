@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import userServices from '~/services/users.services'
+import userServices from '~/services/users.service'
 import { ParamsDictionary } from 'express-serve-static-core'
 import {
   registerReqBody,
@@ -15,7 +15,7 @@ import {
 } from '~/models/requests/user.requerst'
 import User from '~/models/schemas/User.schema'
 import { ObjectId } from 'mongodb'
-import databaseServices from '~/services/database.services'
+import databaseServices from '~/services/database.service'
 import httpStatus from '~/constants/httpStatus'
 import { userMessages } from '~/constants/message'
 import { UserVerifyStatus } from '~/constants/enums'

@@ -9,6 +9,10 @@ import { config } from 'dotenv'
 
 config()
 
+export const numberEnumToArray = (numberEnum: { [key: string]: string | number }) => {
+  return Object.values(numberEnum).filter((value) => typeof value === 'number') as number[]
+}
+
 export const verifyAccessToken = async (access_token: string, req?: Request) => {
   if (!access_token) {
     throw new ErrorWithStatus({

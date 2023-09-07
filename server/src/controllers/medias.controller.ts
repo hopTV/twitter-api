@@ -3,7 +3,7 @@ import path from 'path'
 import { UPLOAD_IMAGE_DIR, UPLOAD_VIDEO_DIR } from '~/constants/dir'
 import httpStatus from '~/constants/httpStatus'
 import { userMessages } from '~/constants/message'
-import mediasService from '~/services/mediasService'
+import mediasService from '~/services/medias.service'
 import fs from "fs"
 import mime from 'mime'
 
