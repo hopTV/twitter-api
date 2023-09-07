@@ -15,6 +15,7 @@ interface UserType {
   bio?: string
   location?: string
   website?: string
+  username?: string
   avatar?: string
   cover_photo?: string
 }
@@ -33,6 +34,7 @@ export default class User {
   bio: string
   location: string
   website: string
+  username?: string
   avatar: string
   cover_photo: string
 
@@ -51,6 +53,7 @@ export default class User {
     this.bio = user.bio || ''
     this.location = user.location || ''
     this.website = user.website || ''
+    this.username = user.username || ''
     this.avatar = user.avatar || ''
     this.cover_photo = user.cover_photo || ''
   }

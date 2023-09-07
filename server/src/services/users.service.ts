@@ -1,5 +1,5 @@
 import User from '~/models/schemas/User.schema'
-import databaseServices from './database.services'
+import databaseServices from './database.service'
 import { UpdateMeReqBody, registerReqBody } from '~/models/requests/user.requerst'
 import { hashPassword } from '~/utils/crypto'
 import { signToken, verifyToken } from '~/utils/jwt'
@@ -91,6 +91,7 @@ class UsersServices {
       new User({
         ...payload,
         _id: user_id,
+        username: `user${user_id.toString()}`,
         email_verify_token,
         date_of_birth: new Date(payload.date_of_birth),
         password: hashPassword(payload.password)
@@ -241,6 +242,7 @@ class UsersServices {
       const data = await this.register({
         email: userInfo.email,
         name: userInfo.name,
+        // username: `user${ userInfo.id.toString()}`,
         date_of_birth: new Date().toISOString(),
         password,
         confirm_password: password

@@ -2,6 +2,8 @@ import { MongoClient, Db, Collection } from 'mongodb'
 import { config } from 'dotenv'
 import User from '~/models/schemas/User.schema'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
+import Hashtag from '~/models/schemas/hashtags.schema'
+import Tweet from '~/models/schemas/tweets.schema'
 
 config()
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@twitter.dhrommo.mongodb.net/?retryWrites=true&w=majority`
@@ -28,6 +30,29 @@ class DatabaseService {
     }
   }
 
+  async indexUsers() {
+    const exists = await this.users.indexExists(['email_1_password_1', 'email_1', 'username_1'])
+
+    if (!exists) {
+      this.users.createIndex({ email: 1, password: 1 })
+      this.users.createIndex({ email: 1 }, { unique: true })
+      this.users.createIndex({ username: 1 }, { unique: true })
+    }
+  }
+
+  async indexRefreshToken() {
+    const exists = await this.refreshTokens.indexExists(['exp_1', 'token_1'])
+    if (!exists) {
+      this.refreshTokens.createIndex({ token: 1 })
+      this.refreshTokens.createIndex(
+        { exp: 1 },
+        {
+          expireAfterSeconds: 0
+        }
+      )
+    }
+  }
+
   get users(): Collection<User> {
     return this.db.collection('users')
   }
@@ -35,6 +60,15 @@ class DatabaseService {
   get refreshTokens(): Collection<RefreshToken> {
     return this.db.collection('refresh_token')
   }
+
+  get hashtags(): Collection<Hashtag> {
+    return this.db.collection('hashtags')
+  }
+
+  get tweets(): Collection<Tweet>{
+    return this.db.collection('tweets')
+  }
+
 }
 
 const databaseServices = new DatabaseService()
