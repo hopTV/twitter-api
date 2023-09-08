@@ -4,6 +4,7 @@ import User from '~/models/schemas/User.schema'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import Hashtag from '~/models/schemas/hashtags.schema'
 import Tweet from '~/models/schemas/tweets.schema'
+import Bookmark from '~/models/schemas/bookmark.schema'
 
 config()
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@twitter.dhrommo.mongodb.net/?retryWrites=true&w=majority`
@@ -65,10 +66,13 @@ class DatabaseService {
     return this.db.collection('hashtags')
   }
 
-  get tweets(): Collection<Tweet>{
+  get tweets(): Collection<Tweet> {
     return this.db.collection('tweets')
   }
 
+  get bookmarks(): Collection<Bookmark> {
+    return this.db.collection('bookmarks')
+  }
 }
 
 const databaseServices = new DatabaseService()
