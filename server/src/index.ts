@@ -9,6 +9,7 @@ import { UPLOAD_IMAGE_DIR } from './constants/dir'
 import staticRouter from './routes/static.routes'
 import tweetsRouter from './routes/tweets.routes'
 import bookmarksRouter from './routes/bookmarks.routes'
+import likeRouter from './routes/like.routes'
 
 config()
 
@@ -30,6 +31,7 @@ app.use('/users', usersRouter)
 // app.use('/static', staticRouter)
 app.use('/tweets', tweetsRouter)
 app.use('/bookmarks', bookmarksRouter)
+app.use('/likes', likeRouter)
 app.use(defaultErrorHandler)
 
 app.listen(port, () => {

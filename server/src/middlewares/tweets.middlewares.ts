@@ -121,20 +121,29 @@ export const createTweetValidator = validate(
   )
 )
 
-// export const tweetIdValidator = validate(
-//   checkSchema({
-//     tweet_id: {
-//       custom: {
-//         options: async (value, { req }) => {
-//           if (!ObjectId.isValid(value)) {
-//             throw new ErrorWithStatus({
-//               message: TWEETS_MESSAGES.INVALID_TWEET_ID,
-//               status: httpStatus.BAD_REQUEST
-//             })
-//           }
-//         }
-
-//       }
-//     }
-//   })
-// )
+export const tweetIdValidator = validate(
+  checkSchema({
+    tweet_id: {
+      custom: {
+        options: async (value, { req }) => {
+          if (!ObjectId.isValid(value)) {
+            throw new ErrorWithStatus({
+              message: TWEETS_MESSAGES.INVALID_TWEET_ID,
+              status: httpStatus.BAD_REQUEST
+            })
+          }
+          const tweet = await databaseServices.tweets.findOne({
+            _id: new ObjectId(value)
+          })
+          if(!tweet) {
+            throw new ErrorWithStatus ({
+              message: TWEETS_MESSAGES.TWEET_NOT_FOUND,
+              status: httpStatus.NOT_FOUND
+            })
+          }
+          return true
+        }
+      }
+    }
+  })
+)
