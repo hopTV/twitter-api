@@ -4,6 +4,7 @@ import { ParamsDictionary } from 'express-serve-static-core'
 import { TokenPayload } from '~/models/requests/user.requerst'
 import bookmarkService from '~/services/bookmark.service'
 import { BookmarkTweetReqBody } from '~/models/requests/bookmarks.requerst'
+import { join } from 'path'
 
 export const bookmarkTweetController = async (
   req: Request<ParamsDictionary, any, BookmarkTweetReqBody>,
@@ -22,4 +23,8 @@ export const bookmarkTweetController = async (
 export const unBookmarkTweetController = async (req: Request, res: Response) => {
   const { user_id } = req.decoded_authorization as TokenPayload
   const result = bookmarkService.unBookmarkTweet(user_id, req.params.tweet_id)
+  return res.json({
+    message: BOOKMARK_MESSAGES.UNBOOKMARK_SUCCESSFULLY,
+    result
+  })
 }

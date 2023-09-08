@@ -1,24 +1,24 @@
 import { Router } from 'express'
-import { bookmarkTweetController, unBookmarkTweetController } from '~/controllers/bookmark.controller'
+import { likeTweetController, unlikeTweetController } from '~/controllers/like.controller'
 import { tweetIdValidator } from '~/middlewares/tweets.middlewares'
 import { accessTokenValidator, verifiedUserValidator } from '~/middlewares/users.middlewares'
 import { wrapRequestHandler } from '~/utils/handlers'
 
-const bookmarksRouter = Router()
+const likeRouter = Router()
 
-bookmarksRouter.post(
+likeRouter.post(
   '',
   accessTokenValidator,
   verifiedUserValidator,
   tweetIdValidator,
-  wrapRequestHandler(bookmarkTweetController)
+  wrapRequestHandler(likeTweetController)
 )
-bookmarksRouter.delete(
-  '/tweets/:tweet_id',
+likeRouter.delete(
+  '/tweet/:tweet_id',
   accessTokenValidator,
   verifiedUserValidator,
   tweetIdValidator,
-  wrapRequestHandler(unBookmarkTweetController)
+  wrapRequestHandler(unlikeTweetController)
 )
 
-export default bookmarksRouter
+export default likeRouter
