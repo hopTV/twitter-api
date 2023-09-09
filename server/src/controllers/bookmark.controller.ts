@@ -1,10 +1,9 @@
-import { NextFunction, Request, Response } from 'express'
+import {Request, Response } from 'express'
 import { BOOKMARK_MESSAGES } from '~/constants/message'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { TokenPayload } from '~/models/requests/user.requerst'
 import bookmarkService from '~/services/bookmark.service'
 import { BookmarkTweetReqBody } from '~/models/requests/bookmarks.requerst'
-import { join } from 'path'
 
 export const bookmarkTweetController = async (
   req: Request<ParamsDictionary, any, BookmarkTweetReqBody>,

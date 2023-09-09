@@ -87,6 +87,7 @@ class UsersServices {
       user_id: user_id.toString(),
       verify: UserVerifyStatus.Unverified
     })
+
     await databaseServices.users.insertOne(
       new User({
         ...payload,
