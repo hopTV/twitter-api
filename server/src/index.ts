@@ -9,6 +9,7 @@ import staticRouter from './routes/static.routes'
 import tweetsRouter from './routes/tweets.routes'
 import bookmarksRouter from './routes/bookmarks.routes'
 import likeRouter from './routes/like.routes'
+import searchRouter from './routes/search.routes'
 // import './utils/fake'
 
 config()
@@ -32,6 +33,7 @@ app.use('/static', staticRouter)
 app.use('/tweets', tweetsRouter)
 app.use('/bookmarks', bookmarksRouter)
 app.use('/likes', likeRouter)
+app.use('/search', searchRouter)
 app.use(defaultErrorHandler)
 
 app.listen(port, () => {
