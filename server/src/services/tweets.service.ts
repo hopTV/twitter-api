@@ -246,7 +246,240 @@ class TweetsService {
     
     // mong muốn newFees sẽ lấy luôn cả tweet của mình
     ids.push(new ObjectId(user_id))
-    
+
+    const [tweets, total] = await Promise.all([
+      databaseServices.tweets.aggregate([
+        {
+          $match: {
+            user_id: {
+              $in: ids
+            }
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'user_id',
+            foreignField: '_id',
+            as: 'user'
+          }
+        },
+        {
+          $unwind: {
+           path: '$user'
+          }
+        },
+        {
+          $match: {
+            $or: [
+              {
+                audience: 0
+              },
+              {
+                $and: [
+                  {audience: 1},
+                  {
+                    'user.twitter_circle': {
+                      $in: [new ObjectId(user_id)]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+         {
+          $skip: limit * (page -1)
+        }, 
+        {
+          $limit: limit
+        },
+        {
+          $lookup: {
+            from: 'hashtags',
+            localField: 'hashtags',
+            foreignField: '_id',
+            as: 'hashtags'
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'mentions',
+            foreignField: '_id',
+            as: 'mentions'
+          }
+        }, 
+        {
+          $addFields: {
+            mentions: {
+              $map: {
+                input: '$mentions',
+                as: 'mention',
+                in: {
+                  _id: '$$mention._id',
+                  name: '$$mention.name',
+                  username: '$$mention.username',
+                  email: '$$mention.email'
+                }
+              }
+            }
+          }
+        }, 
+        {
+          $lookup: {
+            form: 'bookmarks',
+            localField: '_id',
+            foreignField: 'tweet_id',
+            as: 'bookmarks'
+          }
+        },
+        {
+          $lookup: {
+            form: 'likes',
+            localField: '_id',
+            foreignField: 'tweet_id',
+            as: 'likes'
+          }
+        },
+        {
+          $lookup: {
+            form: 'tweets', 
+            localField: '_id',
+            foreignField: 'parent_id',
+            as: 'tweet_child',
+          }
+        }, 
+        {
+          $addFields: {
+            bookmarks: {
+              $size: '$bookmarks',
+
+            }, 
+            likes: {
+              $size: '$likes'
+            }, 
+              retweet_count: {
+                $size: {
+                  $filter: {
+                    input: '$tweet_child',
+                    as: 'item',
+                    cond: {
+                      $eq: ['$$item.type', TweetType.Retweet]
+                    }
+                  }
+                }
+              },
+              comment_count: {
+                $size: {
+                  $filter: {
+                    input: '$tweet_child',
+                    as: 'item',
+                    cond: {
+                      $eq: ['$$item.type', TweetType.Comment]
+                    }
+                  }
+                }
+              },
+              quote_count: {
+                $size: {
+                  $filter: {
+                    input: '$tweet_child',
+                    as: 'item',
+                    cond: {
+                      $eq: ['$$item.type', TweetType.QuoteTweet]
+                    }
+                  }
+                }
+              }
+          }
+        },
+        {
+          $project: {
+            tweet_child: 0,
+            user: {
+              password: 0,
+              email_verify_token: 0,
+              forgot_password_token: 0,
+              twitter_circle: 0,
+              date_of_birth: 0
+            }
+          }
+        }
+      ]).toArray(),
+      databaseServices.tweets.aggregate([
+        {
+          $match: {
+            user_id: {
+              $in: ids
+            }
+        }
+      },
+      {
+        $lookup: {
+          form: 'users',
+          localField: 'user_id',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      {
+        $unwind: {
+          path: '$user'
+        }
+      }, 
+      {
+        $match: {
+          $or: [
+            {
+            audience: 0
+          },
+          {
+            $and: [
+              {
+                audience: 1
+            },
+            {
+              'user.twitter_circle': {
+                $in: [new ObjectId(user_id)]
+              }
+            }
+          ]
+          }
+        ]
+        }
+      },
+      {
+        $count: 'total'
+      }
+      ]).toArray()
+    ])
+
+
+    const tweet_ids = tweets.map((tweet) => tweet._id)
+    const date = new Date()
+    await databaseServices.tweets.updateMany(
+      {
+        _id: {
+          $in: tweet_ids
+        }
+      },
+      {
+        $inc: {user_views: 1},
+        $set: {
+          updated_at: date
+        }
+      }
+    )
+
+      tweets.forEach((tweet) => {
+        tweet.updated_at = date
+        tweet.user_views += 1
+      })
+      return {
+        tweets,
+        total: total[0]?.total || 0
+      }
   }
 }
 
