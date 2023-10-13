@@ -128,7 +128,7 @@ class UsersServices {
   async login({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken({ user_id, verify })
 
-    const { iat,  exp } = await this.decodeRefreshToken(refresh_token)
+    const { iat, exp } = await this.decodeRefreshToken(refresh_token)
     await databaseServices.refreshTokens.insertOne(
       new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token, iat, exp })
     )
@@ -148,9 +148,9 @@ class UsersServices {
     exp: number
   }) {
     const [new_access_token, new_refresh_token] = await Promise.all([
-      this.signAccessToken({user_id, verify}),
-      this.signRefreshToken({user_id, verify}),
-      databaseServices.refreshTokens.deleteOne({token: refresh_token})
+      this.signAccessToken({ user_id, verify }),
+      this.signRefreshToken({ user_id, verify }),
+      databaseServices.refreshTokens.deleteOne({ token: refresh_token })
     ])
 
     const decoded_refresh_token = await this.decodeRefreshToken(new_refresh_token)
@@ -228,8 +228,10 @@ class UsersServices {
         user_id: user._id.toString(),
         verify: user.verify
       })
-      const {iat, exp} = await this.decodeRefreshToken(refresh_token)
-      await databaseServices.refreshTokens.insertOne(new RefreshToken({ user_id: user._id, token: refresh_token, iat, exp }))
+      const { iat, exp } = await this.decodeRefreshToken(refresh_token)
+      await databaseServices.refreshTokens.insertOne(
+        new RefreshToken({ user_id: user._id, token: refresh_token, iat, exp })
+      )
 
       return {
         access_token,
@@ -370,6 +372,31 @@ class UsersServices {
         }
       }
     )
+    return user
+  }
+
+  async getProfile(username: string) {
+    const user = await databaseServices.users.findOne(
+      { username },
+      {
+        projection: {
+          password: 0,
+          email_verify_token: 0,
+          forgot_password_token: 0,
+          verify: 0,
+          created_at: 0,
+          updated_at: 0
+        }
+      }
+    )
+
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: userMessages.USER_NOT_FOUND,
+        status: httpStatus.NOT_FOUND
+      })
+    }
+
     return user
   }
 }

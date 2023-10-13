@@ -163,6 +163,29 @@ const imageSchema: ParamSchema = {
   }
 }
 
+const userIdSchema: ParamSchema = {
+  custom: {
+    options: async (value: string, { req }) => {
+      if (!ObjectId.isValid(value)) {
+        throw new ErrorWithStatus({
+          message: userMessages.INVALID_USER_ID,
+          status: httpStatus.NOT_FOUND
+        })
+      }
+      const followed_user = await databaseServices.users.findOne({
+        _id: new ObjectId(value)
+      })
+
+      if (followed_user === null) {
+        throw new ErrorWithStatus({
+          message: userMessages.USER_NOT_FOUND,
+          status: httpStatus.NOT_FOUND
+        })
+      }
+    }
+  }
+}
+
 export const loginValidator = validate(
   checkSchema(
     {
@@ -446,11 +469,20 @@ export const updateMeValidator = validate(
   })
 )
 
-export const isUserLoginValidator = (middleware: (req: Request, res:Response, next:NextFunction) => void) => {
-  return (req: Request, res: Response, next:NextFunction) => {
-    if(req.headers.authorization) {
+export const isUserLoginValidator = (middleware: (req: Request, res: Response, next: NextFunction) => void) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (req.headers.authorization) {
       return middleware(req, res, next)
     }
     next()
   }
 }
+
+export const getConversationsValidator = validate(
+  checkSchema(
+    {
+      receiver_id: userIdSchema
+    },
+    ['params']
+  )
+)

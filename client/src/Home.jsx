@@ -4,12 +4,12 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import 'vidstack/styles/defaults.css'
 import 'vidstack/styles/community-skin/video.css'
-import {
-  MediaCommunitySkin,
-  MediaOutlet,
-  MediaPlayer,
-  MediaPoster
-} from '@vidstack/react'
+// import {
+//   MediaCommunitySkin,
+//   MediaOutlet,
+//   MediaPlayer,
+//   MediaPoster
+// } from '@vidstack/react'
 
 const getGoogleAuthUrl = () => {
   const { VITE_GOOGLE_CLIENT_ID, VITE_GOOGLE_REDIRECT_URI } = import.meta.env
@@ -56,32 +56,7 @@ export default function Home() {
         />
       </video>
       <h2>HLS Streaming</h2>
-      <MediaPlayer
-        title='Sprite Fight'
-        src='http://localhost:4000/static/video-hls/JjcuW4sygniPvpPZzefCI/master.m3u8'
-        // poster='https://image.mux.com/VZtzUzGRv02OhRnZCxcNg49OilvolTqdnFLEqBsTwaxU/thumbnail.webp?time=268&width=980'
-        // thumbnails='https://media-files.vidstack.io/sprite-fight/thumbnails.vtt'
-        aspectRatio={16 / 9}
-        crossorigin=''
-      >
-        <MediaOutlet>
-          <MediaPoster alt='Girl walks into sprite gnomes around her friend on a campfire in danger!' />
-          {/* <track
-            src='https://media-files.vidstack.io/sprite-fight/subs/english.vtt'
-            label='English'
-            srcLang='en-US'
-            kind='subtitles'
-            default
-          /> */}
-          {/* <track
-            src='https://media-files.vidstack.io/sprite-fight/chapters.vtt'
-            srcLang='en-US'
-            kind='chapters'
-            default
-          /> */}
-        </MediaOutlet>
-        <MediaCommunitySkin />
-      </MediaPlayer>
+    
 
       <h1>Google OAuth 2.0</h1>
       <p className='read-the-docs'>

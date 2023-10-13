@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
   forgotPasswordController,
   getMeController,
+  getProfileController,
   loginController,
   logoutController,
   oauthController,
@@ -33,7 +34,7 @@ usersRouter.post('/login', loginValidator, wrapRequestHandler(loginController))
 //login vs google
 usersRouter.get('/oauth/google', wrapRequestHandler(oauthController))
 
-usersRouter.post('/refresh-token',  refreshTokenValidator, wrapRequestHandler(refreshTokenController))
+usersRouter.post('/refresh-token', refreshTokenValidator, wrapRequestHandler(refreshTokenController))
 
 usersRouter.post('/register', registerValidator, wrapRequestHandler(registerController))
 usersRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrapRequestHandler(logoutController))
@@ -48,6 +49,7 @@ usersRouter.post(
 usersRouter.post('/reset-password', resetPasswordValidator, wrapRequestHandler(resetPasswordController))
 
 usersRouter.get('/me', accessTokenValidator, wrapRequestHandler(getMeController))
+usersRouter.get('/:username', wrapRequestHandler(getProfileController))
 
 usersRouter.patch(
   '/me',
