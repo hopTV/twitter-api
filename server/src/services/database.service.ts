@@ -7,6 +7,7 @@ import Tweet from '~/models/schemas/tweets.schema'
 import Bookmark from '~/models/schemas/bookmark.schema'
 import Like from '~/models/schemas/like.shema'
 import Follower from '~/models/schemas/Follower.chema'
+import Conversation from '~/models/schemas/Conversations.chema'
 
 config()
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@twitter.dhrommo.mongodb.net/?retryWrites=true&w=majority`
@@ -80,6 +81,9 @@ class DatabaseService {
   }
   get followers(): Collection<Follower> {
     return this.db.collection('followers')
+  }
+  get conversations(): Collection<Conversation> {
+    return this.db.collection('conversations')
   }
 }
 

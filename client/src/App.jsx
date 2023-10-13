@@ -7,7 +7,8 @@ import axios from 'axios'
 function App() {
   useEffect(() => {
     const controller = new AbortController()
-    for (let i = 0; i < 20; i++) {
+    // for (let i = 0; i < 20; i++) {
+
       axios
         .get('/users/me', {
           headers: {
@@ -19,11 +20,12 @@ function App() {
         .then((res) => {
           localStorage.setItem('profile', JSON.stringify(res.data.result))
         })
-    }
+    // }
     return () => {
       controller.abort()
     }
   }, [])
+  
   return <RouterProvider router={router} />
 }
 

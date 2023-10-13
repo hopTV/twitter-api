@@ -4,14 +4,15 @@ import axios from 'axios'
 import InfiniteScroll from 'react-infinite-scroll-component'
 
 const profile = JSON.parse(localStorage.getItem('profile'))
+console.log(profile);
 const usernames = [
   {
     name: 'user1',
-    value: 'user64be0ad2e43d2464394feedb'
+    value: 'user6528fdf6441c50dd9619e365'
   },
   {
     name: 'user2',
-    value: 'user64be0cd2b28d088a1e8f963c'
+    value: 'user6528fe41441c50dd9619e367'
   }
 ]
 
@@ -110,6 +111,9 @@ export default function Chat() {
       sender_id: profile._id,
       receiver_id: receiver
     }
+
+    console.log(conversation);
+
     socket.emit('send_message', {
       payload: conversation
     })

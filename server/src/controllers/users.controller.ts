@@ -11,7 +11,8 @@ import {
   verifyForgotPasswordReqBody,
   ResetPasswordReqBody,
   UpdateMeReqBody,
-  RefreshTokenReqBody
+  RefreshTokenReqBody,
+  GetProfileReqParams
 } from '~/models/requests/user.requerst'
 import User from '~/models/schemas/User.schema'
 import { ObjectId } from 'mongodb'
@@ -164,6 +165,15 @@ export const updateMeController = async (
 
   return res.json({
     message: userMessages.UPDATE_ME_SUCCESS,
+    result: user
+  })
+}
+
+export const getProfileController = async (req: Request<GetProfileReqParams>, res: Response, next: NextFunction) => {
+  const { username } = req.params
+  const user = await userServices.getProfile(username)
+  return res.json({
+    message: userMessages.GET_PROFILE_SUCCESS,
     result: user
   })
 }
