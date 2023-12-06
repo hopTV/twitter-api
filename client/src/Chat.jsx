@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import socket from './socket'
+// import socket from './socket'
 import axios from 'axios'
 import InfiniteScroll from 'react-infinite-scroll-component'
 
@@ -25,57 +25,57 @@ export default function Chat() {
     page: PAGE,
     total_page: 0
   })
-  const getProfile = (username) => {
-    axios
-      .get(`/users/${username}`, {
-        baseURL: import.meta.env.VITE_API_URL
-      })
-      .then((res) => {
-        setReceiver(res.data.result._id)
-        alert(`Now you can chat with ${res.data.result.name}`)
-      })
-  }
-  useEffect(() => {
-    socket.on('receive_message', (data) => {
-      const { payload } = data
-      setConversations((conversations) => [payload, ...conversations])
-    })
-    socket.on('connect_error', (err) => {
-      console.log(err.data)
-    })
+  // const getProfile = (username) => {
+  //   axios
+  //     .get(`/users/${username}`, {
+  //       baseURL: import.meta.env.VITE_API_URL
+  //     })
+  //     .then((res) => {
+  //       setReceiver(res.data.result._id)
+  //       alert(`Now you can chat with ${res.data.result.name}`)
+  //     })
+  // }
+  // useEffect(() => {
+  //   socket.on('receive_message', (data) => {
+  //     const { payload } = data
+  //     setConversations((conversations) => [payload, ...conversations])
+  //   })
+  //   socket.on('connect_error', (err) => {
+  //     console.log(err.data)
+  //   })
 
-    socket.on('disconnect', (reason) => {
-      console.log(reason)
-    })
+  //   socket.on('disconnect', (reason) => {
+  //     console.log(reason)
+  //   })
 
-    return () => {
-      socket.disconnect()
-    }
-  }, [])
+  //   return () => {
+  //     socket.disconnect()
+  //   }
+  // }, [])
 
-  useEffect(() => {
-    if (receiver) {
-      axios
-        .get(`/conversations/receivers/${receiver}`, {
-          baseURL: import.meta.env.VITE_API_URL,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          },
-          params: {
-            limit: LIMIT,
-            page: PAGE
-          }
-        })
-        .then((res) => {
-          const { conversations, page, total_page } = res.data.result
-          setConversations(conversations)
-          setPagination({
-            page,
-            total_page
-          })
-        })
-    }
-  }, [receiver])
+  // useEffect(() => {
+  //   if (receiver) {
+  //     axios
+  //       .get(`/conversations/receivers/${receiver}`, {
+  //         baseURL: import.meta.env.VITE_API_URL,
+  //         headers: {
+  //           Authorization: `Bearer ${localStorage.getItem('access_token')}`
+  //         },
+  //         params: {
+  //           limit: LIMIT,
+  //           page: PAGE
+  //         }
+  //       })
+  //       .then((res) => {
+  //         const { conversations, page, total_page } = res.data.result
+  //         setConversations(conversations)
+  //         setPagination({
+  //           page,
+  //           total_page
+  //         })
+  //       })
+  //   }
+  // }, [receiver])
 
   const fetchMoreConversations = () => {
     console.log(pagination)

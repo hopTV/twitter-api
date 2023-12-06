@@ -11,6 +11,7 @@ import { userMessages } from '~/constants/message'
 import axios from 'axios'
 import { ErrorWithStatus } from '~/models/Errors'
 import httpStatus from '~/constants/httpStatus'
+import { sendForgotPasswordEmail, sendVerifyRegisterEmail } from '~/utils/email'
 
 config()
 class UsersServices {
@@ -53,9 +54,9 @@ class UsersServices {
         token_type: TokenType.RefreshToken,
         verify
       },
-      privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
+      privateKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string,
       options: {
-        expiresIn: process.env.FORGOT_PASSWORD_TOKEN_EXPIRES_IN
+        expiresIn: process.env.EMAIL_VERIFY_TOKEN_EXPIRES_IN
       }
     })
   }
@@ -107,13 +108,14 @@ class UsersServices {
     await databaseServices.refreshTokens.insertOne(
       new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token, iat, exp })
     )
+
     // Flow verify email
     // 1. Server send email to user
     // 2. User click link in email
     // 3. Client send request to server with email_verify_token
     // 4. Server verify email_verify_token
     // 5. Client receive access_token and refresh_token
-    // await sendVerifyRegisterEmail(payload.email, email_verify_token)
+    await sendVerifyRegisterEmail(payload.email, email_verify_token)
     return {
       access_token,
       refresh_token
@@ -128,7 +130,7 @@ class UsersServices {
   async login({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken({ user_id, verify })
 
-    const { iat,  exp } = await this.decodeRefreshToken(refresh_token)
+    const { iat, exp } = await this.decodeRefreshToken(refresh_token)
     await databaseServices.refreshTokens.insertOne(
       new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token, iat, exp })
     )
@@ -148,9 +150,9 @@ class UsersServices {
     exp: number
   }) {
     const [new_access_token, new_refresh_token] = await Promise.all([
-      this.signAccessToken({user_id, verify}),
-      this.signRefreshToken({user_id, verify}),
-      databaseServices.refreshTokens.deleteOne({token: refresh_token})
+      this.signAccessToken({ user_id, verify }),
+      this.signRefreshToken({ user_id, verify }),
+      databaseServices.refreshTokens.deleteOne({ token: refresh_token })
     ])
 
     const decoded_refresh_token = await this.decodeRefreshToken(new_refresh_token)
@@ -228,8 +230,10 @@ class UsersServices {
         user_id: user._id.toString(),
         verify: user.verify
       })
-      const {iat, exp} = await this.decodeRefreshToken(refresh_token)
-      await databaseServices.refreshTokens.insertOne(new RefreshToken({ user_id: user._id, token: refresh_token, iat, exp }))
+      const { iat, exp } = await this.decodeRefreshToken(refresh_token)
+      await databaseServices.refreshTokens.insertOne(
+        new RefreshToken({ user_id: user._id, token: refresh_token, iat, exp })
+      )
 
       return {
         access_token,
@@ -299,7 +303,7 @@ class UsersServices {
     }
   }
 
-  async forgotPassword({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
+  async forgotPassword({ user_id, verify, email }: { user_id: string; verify: UserVerifyStatus; email: string }) {
     const forgot_password_token = await this.signForgotPasswordToken({ user_id, verify })
 
     await databaseServices.users.updateOne({ _id: new ObjectId(user_id) }, [
@@ -310,6 +314,9 @@ class UsersServices {
         }
       }
     ])
+
+    await sendForgotPasswordEmail(email, forgot_password_token)
+
     console.log('forgot_password_token', forgot_password_token)
     return {
       message: userMessages.CHECK_EMAIL_TO_RESET_PASSWORD
