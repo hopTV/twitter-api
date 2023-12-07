@@ -5,6 +5,7 @@ import VerifyEmail from './VerifyEmail'
 import VerifyForgotPasswordToken from './VerifyForgotPasswordToken'
 import ResetPassword from './ResetPassword'
 import Chat from './Chat'
+import Test from './test'
 
 const router = createBrowserRouter([
   {
@@ -27,9 +28,13 @@ const router = createBrowserRouter([
     path: '/reset-password',
     element: <ResetPassword />
   },
+  // {
+  //   path: '/chat',
+  //   element: <Chat />
+  // }
   {
-    path: '/chat',
-    element: <Chat />
+    path: '/test',
+    element: <Test />
   }
 ])
 

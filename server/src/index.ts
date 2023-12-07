@@ -15,6 +15,7 @@ import { createServer } from 'http'
 import initSoket from './utils/socket'
 import conversationsRouter from './routes/conversation.routes'
 // import './utils/fake'
+import './utils/s3'
 
 config()
 
